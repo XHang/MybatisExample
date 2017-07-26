@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!-- 这个是实体类的映射文件，保存着当selectOne方法执行时，会发出什么sql查询语句。
+	 其中id是用来标示这个sql语句的功能：通过id查询用户。
+	 namespace用在selectone和java配置类中
+	 parameterType指的是在程序中，执行语句时传入的参数
+	 select * from user where id = #{id}类似于SELECT * FROM user WHERE ID=?
+	  -->
+<mapper namespace="com.Mybatis.Mapper.ArticleMapper">
+   
+   
+   <!-- 
+   		type="Article"是怎么指定到那个类的？
+   		通过全局配置文件的别名
+   		column="aid"和sql改成id可好？
+   		不好，这样的话查询出来有两个id。<id column="id" property="id"/>将不知道指的是哪一个表的id
+   		问题：
+   		多对一查询时是怎么知道userid是指向user呢？我并没有设置外键约束
+   -->
+   <select id="selectArticle" parameterType="int" resultMap="resultArticle">
+   		select user.username,user.id,article.id aid,article.title,article.content from user join article on (user.id=article.userid) where user.id=#{id}
+   </select>
+   <resultMap type="Article" id="resultArticle">
+   		<id column="aid" property="id"/>
+ 		<result column="title" property="title"/>
+ 		<result column="content" property="content"/>
+ 		<association property="user" javaType="User" resultMap="resultUser"></association> 	
+   </resultMap>
+   <resultMap type="User" id="resultUser">
+   		<id column="id" property="id"/>
+   		<result column="username" property="username"/>
+   </resultMap>
+</mapper> 

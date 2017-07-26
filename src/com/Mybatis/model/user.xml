@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!-- 
+实体类映射文件
+解释：
+1：namespace,如果你不想用接口来作为dao层，那么namespace可以瞎写。
+	如果是接口作为dao层，则namespace是接口的完全限定名
+2：insert标签标表示这是一个保存操作。
+	如果接口是作为dao层，则id应该是对应的接口方法名。否则，id可以随便起
+	parameterType的值表示这是一个User对象的持久化。
+	useGeneratedKeys="true" keyProperty="id"  ☞保存时id是自动生成的
+ 3：用不用接口有什么不同的呢？
+ 	  用接口的话代码上编写比较简单
+ 	  不用接口的话需要手动根据namespace的值进行持久化操作。
+-->
+<mapper namespace="com.Mybatis.Mapper.UserMapper">
+    <insert id="adduser" parameterType="User"  useGeneratedKeys="true" keyProperty="id"> 
+        insert into user(username)   values(#{username})  
+    </insert>
+    <delete id="deleteUser" parameterType="int">
+        delete from user where id=#{id}
+    </delete>
+     <update id="update" parameterType="User">
+   		update user set username=#{username} where id=#{id}
+   	</update>
+</mapper>
