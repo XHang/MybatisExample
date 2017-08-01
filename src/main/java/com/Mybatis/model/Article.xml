@@ -1,0 +1,139 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.Mybatis.Mapper.ArticleMapper">
+	<!-- 实现该实验之前，还是得先存一个文章 -->
+	<insert id="saveArticle" parameterType="Article">
+		insert into article values(null,#{title},#{content})
+	</insert>
+
+    <select id="dynamicSqlIfQuery" parameterType="com.Mybatis.model.Article" resultType="com.Mybatis.model.Article">
+        select * from Article where 1=1
+        <if test="title!=null">
+        	and title=#{title}
+        </if>
+        <if test="content!=null">
+        	and content=#{content}
+        </if> 
+         <if test="id!=null">
+        	and id=#{id}
+        </if> 
+          <!-- if语句就是当传进来的对象里面有成员变量title的时候，自动往sql语句填where title=? 就是说，根据title来查询数据库的记录。
+        	如果传进来的对象有title和content成员变量时，则两个查询条件都加
+       	    -->
+    </select>
+      
+    <select id="dynamicSqlWhereQuery"  parameterType="Article" resultType="Article">
+    	select * from article  
+    	<where>
+    		<if test="id!=null">
+    			and id=#{id}
+    		</if>
+    		<if test="title!=null">
+    			and title=#{title}
+    		</if>
+    		<if test="content!=null">
+       			and content=#{content} 
+       		</if>
+    	</where>
+    	<!-- 
+    	动态sql语句where只在if条件成立的情况下才回补充where ，然后拼后面的sql语句
+        例外，where语句可以智能地将where后面开头and和or 去掉
+        不要跟下面的when子句混为一谈啊
+    	 -->
+    </select>
+    
+    <select id="dynamicSqlChooseQuery" parameterType="Article"  resultType="Article">
+     	select * from article where
+     	<choose >
+     		<when test="id!=null">
+     			id=#{id}
+     		</when>
+     		<when test="title!=null">
+     			title = #{title}
+     		</when>
+     		<when test="content!=null">
+     			content = #{content}
+     		</when>
+     		<otherwise>
+     			1=1
+     		</otherwise>
+     	</choose>
+     	<!-- 动态的choose语句是只要有一个条件成立，拼好sql语句，就可以执行了，不像if这个死脑筋，非得一个一个判断后再拼sql语句
+     			还有一个更先进一点的是，如果条件都不成立，就会执行otherwise
+     	 -->
+    </select>
+    
+    <select id="dynamicSqlTrimQuery" resultType="Article">
+    	select * from article
+    	<trim prefix="where"  prefixOverrides="and|or">
+    		<if test="id!=null">
+    			and id=#{id}
+    		</if>
+    		<if test="content!=null">
+    			and content=#{cintent}
+    		</if>
+    	</trim>
+    	<!-- 
+    		动态的trim语句比较全能
+    		 trim的功能是只要里面有一个if标签满足，就在sql语句的后面加上prefix的内容
+    		 然后补上if子句后面的sql子句。
+    		 另外prefixOverrides可以去掉trim子句多余的前缀内容
+    			 如本例子中拼成的sql语句，将会去掉where后面的第一个and。
+    			 如果拼成后where的第一个字母是or，也会去掉
+    		 此外还有suffixOverrides，作用几乎一致。
+    		 不过去掉的是sql语句的最后一个单词，如果它跟suffixOverrides的值对应的话
+    	 -->
+    </select>
+        
+    <update id="updateArticleSet" >
+    	update article 
+    	<set>
+    		<if test="content!=null">
+    			content=#{content},
+    		</if>
+    		<if test="title!=null">
+    			title=#{title},
+    		</if>
+    	</set>
+    	where id=#{id}
+    	<!-- 
+    	set子句会当if条件满足时，补上一个set，同时会消除多余的逗号，例如该例子中的逗号
+    	 -->
+    </update>
+    
+    <select id="selectArticleListByArray"  resultType="Article">
+        select * from Article where id in
+        <foreach collection="array" item="item" index="index"
+        	open="(" separator="," close=")">
+        	#{item}
+        </foreach>
+        <!-- 
+        	foreach子句是用于循环传进来的容器，以此拼成sql语句
+        	其中，collection="array"表示传进来的是一个数组，item是循环到的元素，index是角标
+        	open="(" separator="," close=")"即循环以'('开头，每循环一个在后面补上','，循环完毕补上')'
+         -->
+    </select>
+
+	<select id="selectArticleListByList" parameterType="java.util.List" resultType="Article">
+        select * from Article where id in
+        <foreach collection="list" item="item" index="index"
+        	open="(" separator="," close=")">
+        	#{item}
+        </foreach>
+        <!-- 作用跟上面的array一毛一样，恩。只不过参数可以换成list集合了。。。（真的只是这样？） -->
+    </select>
+    
+    <select id="selectArticleListByMap"  resultType="Article">
+    	select * from article
+    	<foreach collection="map"  item="value" index="name" open="where" separator="and">
+    		${name}=#{value}
+    	</foreach>
+    	<!-- 
+    		这个foreach子句允许传入一个map对象，参数名必须是map，然后循环部分没什么不同 
+    		不同之处只是index变成了循环中map的key，item变成了map中key对应的value
+    		比较麻烦的是接口要加一个param注解
+    	-->
+    </select>
+
+</mapper>
